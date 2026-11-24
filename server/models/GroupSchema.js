@@ -59,4 +59,4 @@ const groupSchema = new mongoose.Schema(
     },
 );
 
-export const groupModel = mongoose.model('GroupModel', groupSchema);
+export const groupModel = mongoose.model('groupModel', groupSchema);
