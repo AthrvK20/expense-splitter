@@ -1,10 +1,11 @@
 import CustomError from './CustomError.js';
 
 function validateGroupName(name) {
-    if (name.trim().length >= 200)
-        throw new CustomError('Group Name Error', 'Group name too big');
-    if (typeof name === 'string' && name.trim().length > 0) return name.trim();
-    else {
+    if (typeof name === 'string' && name.trim().length > 0) {
+        if (name.trim().length >= 200)
+            throw new CustomError('Group Name Error', 'Group name too big');
+        return name.trim();
+    } else {
         throw new CustomError('Group Name Error', 'Group name is not valid');
     }
 }
@@ -32,7 +33,7 @@ function validateMembers(membersArr) {
                 return m.length > 0;
             });
     } else {
-        throw new CustomError('Members Error', 'Members is not an array');
+        throw new CustomError('Members Error', 'Invalid Members List');
     }
 
     const membersSet = new Set(members.map((m) => m.toLowerCase()));
