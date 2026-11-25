@@ -89,4 +89,60 @@ router.get('/:groupId/expenses', async (req, res) => {
     return res.status(200).json(expenses);
 });
 
+router.post('/:groupId/expenses', async (req, res) => {
+    const groupId = req.params.groupId;
+    const { paidBy, amountPaise, description, date } = req.body ?? {};
+
+
+    let group;
+    try {
+        group = await groupModel
+            .findOne({ groupId: groupId })
+            .select('expenses members');
+
+        if (!group)
+            return res
+                .status(404)
+                .json({ error: 'Group Error: Group Not Found' });
+    } catch (error) {
+        console.error(error.name, error.message);
+        return res.status(500).json({ error: 'Error: Internal Server Error' });
+    }
+
+    if (!Number.isInteger(amountPaise) || amountPaise < 1) {
+        return res.status(400).json({ error: 'Invalid amountPaise' });
+    }
+
+    if (!paidBy || !group.members.includes(paidBy)) {
+        return res.status(400).json({ error: 'Invalid paidBy' });
+    }
+
+    if (description && !(typeof description === 'string'))
+        return res.status(400).json({ error: 'Invalid Description' });
+
+    if (date && new Date(date).toString() === 'Invalid Date')
+        return res.status(400).json({ error: 'Invalid Date' });
+
+    group.expenses.push({
+        paidBy: paidBy,
+        amountPaise: amountPaise,
+        description: description,
+        date: date,
+    });
+
+    let newGroup;
+    try {
+        newGroup = await group.save();
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            console.error(error.message)
+            return res.status(400).json({ error: `Error: ${error.message}` });
+        }
+        console.error(error.name, error.message);
+        return res.status(500).json({ error: 'Error: Internal Server Error' });
+    }
+
+    res.status(201).json(newGroup.expenses[newGroup.expenses.length - 1]);
+});
+
 export default router;
