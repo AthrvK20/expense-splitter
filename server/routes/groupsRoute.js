@@ -66,4 +66,27 @@ router.get('/:groupId', async (req, res) => {
     res.status(200).json(group);
 });
 
+router.get('/:groupId/expenses', async (req, res) => {
+    const groupId = req.params.groupId;
+
+    let expenses;
+    try {
+        const group = await groupModel
+            .findOne({ groupId: groupId })
+            .select('expenses');
+
+        if (!group)
+            return res
+                .status(404)
+                .json({ error: 'Group Error: Group Not Found' });
+
+        expenses = group.expenses;
+    } catch (error) {
+        console.error(error.name, error.message);
+        return res.status(500).json({ error: `Error: Internal Server Error` });
+    }
+
+    return res.status(200).json(expenses);
+});
+
 export default router;
