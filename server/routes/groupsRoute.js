@@ -20,15 +20,12 @@ router.post('/', async (req, res) => {
     } catch (error) {
         if (error instanceof CustomError) {
             return res.status(400).json({
-                error: {
-                    name: error.name,
-                    message: error.message,
-                },
+                error: `${error.name}: ${error.message}`,
             });
         } else {
             console.error(error.name, error.message);
             return res.status(500).json({
-                error: { name: 'Error', message: 'Internal Server Error' },
+                error: `Error: Internal Server Error`,
             });
         }
     }
@@ -44,15 +41,12 @@ router.post('/', async (req, res) => {
     } catch (error) {
         if (error instanceof CustomError || error.name === 'ValidationError') {
             return res.status(400).json({
-                error: {
-                    name: error.name,
-                    message: error.message,
-                },
+                error: `${error.name}: ${error.message}`,
             });
         } else {
             console.error(error.name, error.message);
             return res.status(500).json({
-                error: { name: 'Error', message: 'Internal Server Error' },
+                error: `Error: Internal Server Error`,
             });
         }
     }
@@ -61,7 +55,8 @@ router.post('/', async (req, res) => {
 export default router;
 
 function validateGroupName(name) {
-    if(name.trim().length >= 200) throw new CustomError('Group Name Error', 'Group name too big')
+    if (name.trim().length >= 200)
+        throw new CustomError('Group Name Error', 'Group name too big');
     if (typeof name === 'string' && name.trim().length > 0) return name.trim();
     else {
         throw new CustomError('Group Name Error', 'Group name is not valid');
@@ -109,3 +104,5 @@ function validateMembers(membersArr) {
         throw new CustomError('Members Error', 'Duplicate names');
     }
 }
+
+
