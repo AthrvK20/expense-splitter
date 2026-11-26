@@ -153,7 +153,10 @@ router.delete('/:groupId/expenses/:eid', async (req, res) => {
             .findOne({ groupId: groupId })
             .select('expenses');
 
-        if (!group) return res.status(404).json({ error: 'Group Error: Group Not Found' });
+        if (!group)
+            return res
+                .status(404)
+                .json({ error: 'Group Error: Group Not Found' });
     } catch (error) {
         console.error(error.name, error.message);
         return res.status(500).json({ error: 'Internal Server Error' });
@@ -161,7 +164,10 @@ router.delete('/:groupId/expenses/:eid', async (req, res) => {
 
     const expense = group.expenses.id(eid);
 
-    if (!expense) return res.status(404).json({ error: 'Expense Error: Expense Not Found' });
+    if (!expense)
+        return res
+            .status(404)
+            .json({ error: 'Expense Error: Expense Not Found' });
 
     expense.deleteOne();
 
