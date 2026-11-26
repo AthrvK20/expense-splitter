@@ -52,4 +52,35 @@ function validateMembers(membersArr) {
     }
 }
 
-export { validateGroupName, validateMembers };
+function validateAmountPaise(amountPaise) {
+    if (!Number.isInteger(amountPaise) || amountPaise < 1) {
+        throw new CustomError('Amount Error', 'Invalid amountPaise');
+    }
+}
+
+function validatePaidBy(paidBy, members) {
+    if (!paidBy || !members.includes(paidBy)) {
+        throw new CustomError('Payer Error', 'Invalid paidBy');
+    }
+}
+
+function validateDescription(description) {
+    if (description && !(typeof description === 'string')) {
+        throw new CustomError('Description Error', 'Invalid Description');
+    }
+}
+
+function validateDate(date) {
+    if (date && new Date(date).toString() === 'Invalid Date') {
+        throw new CustomError('Date Error', 'Invalid Date');
+    }
+}
+
+export {
+    validateGroupName,
+    validateMembers,
+    validateAmountPaise,
+    validatePaidBy,
+    validateDescription,
+    validateDate,
+};

@@ -1,8 +1,14 @@
 import { Router } from 'express';
-import mongoose from 'mongoose';
 import { groupModel } from '../models/GroupSchema.js';
 import CustomError from '../utils/CustomError.js';
-import { validateGroupName, validateMembers } from '../utils/validation.js';
+import {
+    validateGroupName,
+    validateMembers,
+    validateAmountPaise,
+    validatePaidBy,
+    validateDescription,
+    validateDate,
+} from '../utils/validation.js';
 
 const router = Router();
 
@@ -108,19 +114,17 @@ router.post('/:groupId/expenses', async (req, res) => {
         return res.status(500).json({ error: 'Error: Internal Server Error' });
     }
 
-    if (!Number.isInteger(amountPaise) || amountPaise < 1) {
-        return res.status(400).json({ error: 'Invalid amountPaise' });
+
+    try {
+        validateAmountPaise(amountPaise);
+        validatePaidBy(paidBy, group.members);
+        validateDescription(description);
+        validateDate(date);
+    } catch (error) {
+        console.error(error.name, error.message);
+        return res.status(400).json({ error: `${error.message}` });
     }
 
-    if (!paidBy || !group.members.includes(paidBy)) {
-        return res.status(400).json({ error: 'Invalid paidBy' });
-    }
-
-    if (description && !(typeof description === 'string'))
-        return res.status(400).json({ error: 'Invalid Description' });
-
-    if (date && new Date(date).toString() === 'Invalid Date')
-        return res.status(400).json({ error: 'Invalid Date' });
 
     group.expenses.push({
         paidBy: paidBy,
