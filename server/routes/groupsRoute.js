@@ -93,7 +93,6 @@ router.post('/:groupId/expenses', async (req, res) => {
     const groupId = req.params.groupId;
     const { paidBy, amountPaise, description, date } = req.body ?? {};
 
-
     let group;
     try {
         group = await groupModel
@@ -135,7 +134,7 @@ router.post('/:groupId/expenses', async (req, res) => {
         newGroup = await group.save();
     } catch (error) {
         if (error.name === 'ValidationError') {
-            console.error(error.message)
+            console.error(error.message);
             return res.status(400).json({ error: `Error: ${error.message}` });
         }
         console.error(error.name, error.message);
@@ -143,6 +142,40 @@ router.post('/:groupId/expenses', async (req, res) => {
     }
 
     res.status(201).json(newGroup.expenses[newGroup.expenses.length - 1]);
+});
+
+router.delete('/:groupId/expenses/:eid', async (req, res) => {
+    const { groupId, eid } = req.params;
+
+    let group;
+    try {
+        group = await groupModel
+            .findOne({ groupId: groupId })
+            .select('expenses');
+
+        if (!group) return res.status(404).json({ error: 'Group Error: Group Not Found' });
+    } catch (error) {
+        console.error(error.name, error.message);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    const expense = group.expenses.id(eid);
+
+    if (!expense) return res.status(404).json({ error: 'Expense Error: Expense Not Found' });
+
+    expense.deleteOne();
+
+    try {
+        await group.save();
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            console.error(error.name, error.message);
+            return res.status(400).json({ error: error.message });
+        }
+        console.error(error.message, error.name);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    return res.status(200).json(group.expenses);
 });
 
 export default router;
