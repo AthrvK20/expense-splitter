@@ -114,17 +114,21 @@ router.post('/:groupId/expenses', async (req, res) => {
         return res.status(500).json({ error: 'Error: Internal Server Error' });
     }
 
-
     try {
         validateAmountPaise(amountPaise);
         validatePaidBy(paidBy, group.members);
         validateDescription(description);
         validateDate(date);
     } catch (error) {
+        if (error instanceof CustomError) {
+            console.error(error.name, error.message);
+            return res
+                .status(400)
+                .json({ error: `${error.name}: ${error.message}` });
+        }
         console.error(error.name, error.message);
-        return res.status(400).json({ error: `${error.message}` });
+        return res.status(500).json({ error: 'Error: Internal Server Error' });
     }
-
 
     group.expenses.push({
         paidBy: paidBy,
@@ -183,8 +187,70 @@ router.delete('/:groupId/expenses/:eid', async (req, res) => {
             return res.status(400).json({ error: error.message });
         }
         console.error(error.message, error.name);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Error: Internal Server Error' });
     }
+    return res.status(200).json(group.expenses);
+});
+
+router.patch('/:groupId/expenses/:eid', async (req, res) => {
+    const { groupId, eid } = req.params;
+    const { paidBy, amountPaise, date, description } = req.body ?? {};
+
+    let group;
+
+    try {
+        group = await groupModel
+            .findOne({ groupId: groupId })
+            .select('expenses members');
+
+        if (!group)
+            return res
+                .status(404)
+                .json({ error: 'Group Error: Group Not Found' });
+    } catch (error) {
+        console.error(error.name, error.message);
+        return res.status(500).json({ error: 'Error: Internal Server Error' });
+    }
+
+    const expense = group.expenses.id(eid);
+
+    if (!expense)
+        return res
+            .status(404)
+            .json({ error: 'Expense Error: Expense Not Found' });
+
+    try {
+        if (!(amountPaise === undefined)) validateAmountPaise(amountPaise);
+        if (!(paidBy === undefined)) validatePaidBy(paidBy, group.members);
+        if (!(description === undefined)) validateDescription(description);
+        if (!(date === undefined)) validateDate(date);
+    } catch (error) {
+        if (error instanceof CustomError) {
+            console.error(error.name, error.message);
+            return res
+                .status(400)
+                .json({ error: `${error.name}: ${error.message}` });
+        }
+        console.error(error.name, error.message);
+        return res.status(500).json({ error: 'Error: Internal Server Error' });
+    }
+
+    if (!(paidBy === undefined)) expense.paidBy = paidBy;
+    if (!(amountPaise === undefined)) expense.amountPaise = amountPaise;
+    if (!(date === undefined)) expense.date = date;
+    if (!(description === undefined)) expense.description = description;
+
+    try {
+        await group.save();
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            console.error(error.name, error.message);
+            return res.status(400).json({ error: error.message });
+        }
+        console.error(error.name, error.message);
+        return res.status(500).json({ error: 'Error: Internal Server Error' });
+    }
+
     return res.status(200).json(group.expenses);
 });
 

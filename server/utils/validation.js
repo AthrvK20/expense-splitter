@@ -65,13 +65,15 @@ function validatePaidBy(paidBy, members) {
 }
 
 function validateDescription(description) {
-    if (description && !(typeof description === 'string')) {
+    if (description === undefined) return;
+    if (typeof description !== 'string') {
         throw new CustomError('Description Error', 'Invalid Description');
     }
 }
 
 function validateDate(date) {
-    if (date && new Date(date).toString() === 'Invalid Date') {
+    if (date === undefined) return;
+    if (date === null || new Date(date).toString() === 'Invalid Date') {
         throw new CustomError('Date Error', 'Invalid Date');
     }
 }
