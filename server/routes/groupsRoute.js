@@ -254,4 +254,66 @@ router.patch('/:groupId/expenses/:eid', async (req, res) => {
     return res.status(200).json(group.expenses);
 });
 
+router.get('/:groupId/balances', async (req, res) => {
+    const groupId = req.params.groupId;
+
+    let group;
+    try {
+        group = await groupModel
+            .findOne({ groupId: groupId })
+            .select('expenses members');
+
+        if (!group)
+            return res
+                .status(404)
+                .json({ error: 'Group Error: Group Not Found' });
+    } catch (error) {
+        console.error(error.name, error.message);
+        return res.status(500).json({ error: 'Error: Internal Server Error' });
+    }
+
+    const memberWisePayments = {};
+    const membersCount = group.members.length;
+
+    // Creating Basic Structure of Member Wise Payments
+    group.members.forEach((m) => {
+        memberWisePayments[m] = {
+            paid: 0,
+            share: 0,
+        };
+    });
+
+    for (const e of group.expenses) {
+        const share = Math.floor(e.amountPaise / membersCount);
+        const leftovers = e.amountPaise % membersCount;
+
+        if (!memberWisePayments[e.paidBy]) {
+            return res.status(409).json({
+                error: 'Expense / Members Error: Unexpected Member Found in the Expenses. Please Delete the Expense with unexpected member',
+            });
+        }
+
+        memberWisePayments[e.paidBy].paid =
+            memberWisePayments[e.paidBy].paid + e.amountPaise;
+
+        memberWisePayments[e.paidBy].share =
+            memberWisePayments[e.paidBy].share + leftovers;
+
+        group.members.forEach((m) => {
+            memberWisePayments[m].share = memberWisePayments[m].share + share;
+        });
+    }
+
+    const balances = group.members.map((m) => {
+        return {
+            member: m,
+            paid: memberWisePayments[m].paid,
+            share: memberWisePayments[m].share,
+            balance: memberWisePayments[m].paid - memberWisePayments[m].share,
+        };
+    });
+
+    return res.status(200).json({ balances });
+});
+
 export default router;
