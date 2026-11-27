@@ -6,6 +6,11 @@ export default function handleError(err, req, res, next) {
         });
     }
 
+    if(err.status) {
+        console.error(err.name, err.status, err.message)
+        return res.status(err.status).json({error: err.message})
+    }
+
     console.error(err.name, err.message, err.type);
     return res.status(500).json({ error: `Error: Internal Server Error` });
 }
