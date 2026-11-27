@@ -37,9 +37,7 @@ router.post('/', async (req, res) => {
             groupName: validatedData.groupName,
             members: validatedData.members,
         });
-        return res
-            .status(201)
-            .json({ message: 'created', groupDetails: group });
+        return res.status(201).json({groupId: group.groupId});
     } catch (error) {
         if (error instanceof CustomError || error.name === 'ValidationError') {
             return res.status(400).json({
@@ -59,7 +57,9 @@ router.get('/:groupId', async (req, res) => {
 
     let group;
     try {
-        group = await groupModel.findOne({ groupId: groupId });
+        group = await groupModel
+            .findOne({ groupId: groupId })
+            .select('-_id -createdAt -updatedAt -__v');
     } catch (error) {
         console.error(error.name, error.message);
         return res.status(500).json({ error: `Error: Internal Server Error` });
@@ -149,7 +149,7 @@ router.post('/:groupId/expenses', async (req, res) => {
         return res.status(500).json({ error: 'Error: Internal Server Error' });
     }
 
-    res.status(201).json(newGroup.expenses[newGroup.expenses.length - 1]);
+    res.status(201).json(newGroup.expenses);
 });
 
 router.delete('/:groupId/expenses/:eid', async (req, res) => {
@@ -313,7 +313,7 @@ router.get('/:groupId/balances', async (req, res) => {
         };
     });
 
-    return res.status(200).json({ balances });
+    return res.status(200).json(balances);
 });
 
 export default router;
