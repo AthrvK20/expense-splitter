@@ -22,10 +22,6 @@ app.get('/api/ping', (req, res) => {
     console.log('Someone Pinged');
 });
 
-app.get('/', (req, res) => {
-    res.send('<h1>This is Home Page</h1>');
-});
-
 app.use(handleError);
 
 app.listen(PORT, () => {
