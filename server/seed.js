@@ -3,8 +3,12 @@ import { connectDB } from './db/connectDB.js';
 import { groupModel } from './models/GroupSchema.js';
 import mongoose from 'mongoose';
 
+if (!process.env.MONGODB_URI) {
+    console.error('MONGODB_URI is not set. Aborting seed');
+    process.exit(1);
+}
+
 if (
-    process.env.MONGODB_URI &&
     !['localhost', '127.0.0.1'].includes(
         new URL(process.env.MONGODB_URI).hostname,
     )
@@ -85,12 +89,12 @@ console.log(`
 `);
 
 const group3 = await groupModel.create({
-    groupName: 'Group2',
+    groupName: 'Group3',
     members: ['J', 'K'],
 });
 
 console.log(`
-    Group with any error:
+    Group without any expenses:
     GroupId for Group3: ${group3.groupId}
 `);
 
